@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - ./data:/app/data          # SQLite database persists here
+      - ./config:/app/config      # Mount your config.json here
+    environment:
+      PORT: "3000"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-change-me-before-use}"
+      SESSION_SECRET: "${SESSION_SECRET:-change-this-secret-too}"
+    restart: unless-stopped

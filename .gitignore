@@ -1,0 +1,8 @@
+node_modules/
+data/
+config/config.json
+*.db
+.env
+.nuxt/
+.output/
+dist/

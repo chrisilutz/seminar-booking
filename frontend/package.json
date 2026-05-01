@@ -1,0 +1,17 @@
+{
+  "name": "seminar-booking-frontend",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "nuxt": "^3.14.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vue-tsc": "^2.0.0"
+  }
+}
