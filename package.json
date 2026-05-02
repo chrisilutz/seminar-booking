@@ -1,0 +1,31 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "A self-contained seminar sign-up web application.   **Stack:** Node.js / Express (API) + Nuxt 4 SPA (frontend) + SQLite.   **Architecture:** Single Docker container — Express compiles and serves the Nuxt build as static files and also handles all REST API routes.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisilutz/seminar-booking.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/chrisilutz/seminar-booking/issues"
+  },
+  "homepage": "https://github.com/chrisilutz/seminar-booking#readme",
+  "dependencies": {
+    "@netlify/blobs": "^10.7.4",
+    "@netlify/functions": "^5.2.0",
+    "cookie": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
+  }
+}
