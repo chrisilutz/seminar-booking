@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build --workspace=frontend"
+  command = "npm run generate --workspace=frontend"
   publish = "frontend/.output/public"
 
 [functions]
