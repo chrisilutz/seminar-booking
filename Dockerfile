@@ -4,8 +4,9 @@ WORKDIR /build
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ .
-RUN npm run build
-# Nuxt build with ssr:false writes static output to .output/public/
+RUN npm run generate
+# nuxt generate (not nuxt build) pre-renders index.html into .output/public/
+# With ssr:false, nuxt build skips that step and expects Nitro to serve it dynamically.
 
 # ── Stage 2: Compile API TypeScript ───────────────────────────────────────────
 FROM node:20-alpine AS api-ts-builder
