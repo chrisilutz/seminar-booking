@@ -1,0 +1,54 @@
+{
+  "event": {
+    "name": "Seminar Weekend 2025",
+    "subtitle": "Choose the sessions you'd like to attend"
+  },
+  "days": [
+    "Friday 14 Nov",
+    "Saturday 15 Nov",
+    "Sunday 16 Nov"
+  ],
+  "participants": [
+    "alice@example.com",
+    "bob@example.com",
+    "carol@example.com",
+    "dave@example.com"
+  ],
+  "seminars": [
+    {
+      "id": "s1",
+      "day": "Friday 14 Nov",
+      "time": "09:00–10:30",
+      "room": "Room A",
+      "title": "Opening Circle"
+    },
+    {
+      "id": "s2",
+      "day": "Friday 14 Nov",
+      "time": "11:00–12:30",
+      "room": "Room B",
+      "title": "Introduction to Mindfulness"
+    },
+    {
+      "id": "s3",
+      "day": "Saturday 15 Nov",
+      "time": "09:00–10:30",
+      "room": "Room A",
+      "title": "Deep Dive: Communication"
+    },
+    {
+      "id": "s4",
+      "day": "Saturday 15 Nov",
+      "time": "14:00–15:30",
+      "room": "Room C",
+      "title": "Workshop: Creative Expression"
+    },
+    {
+      "id": "s5",
+      "day": "Sunday 16 Nov",
+      "time": "10:00–11:30",
+      "room": "Room A",
+      "title": "Closing Reflection"
+    }
+  ]
+}
