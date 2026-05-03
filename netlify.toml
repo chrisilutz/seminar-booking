@@ -1,5 +1,5 @@
 [build]
-  command = "npm run generate --prefix frontend"
+  command = "cd frontend && npm run generate"
   publish = "frontend/.output/public"
 
 [functions]
@@ -8,7 +8,7 @@
   included_files = ["config/config.json"]
 
 [dev]
-  command = "npm run dev --prefix frontend"
+  command = "cd frontend && npm run dev"
   targetPort = 3000
   port = 8888
   publish = "frontend/.output/public"
