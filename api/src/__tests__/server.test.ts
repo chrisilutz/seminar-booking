@@ -54,7 +54,7 @@ async function loginAsAdmin(): Promise<string[]> {
     .post('/api/admin/login')
     .send({ password: ADMIN_PASSWORD });
   expect(res.status).toBe(200);
-  return res.headers['set-cookie'] as string[];
+  return res.headers['set-cookie'] as unknown as string[];
 }
 
 // ── GET /api/health ───────────────────────────────────────────────────────────
@@ -225,7 +225,7 @@ describe('POST /api/admin/login', () => {
       .send({ password: 'bad' });
     // Either no set-cookie or a connect.sid cookie that is NOT authenticated
     // We verify by immediately checking /api/admin/me with those cookies (if any)
-    const cookies = res.headers['set-cookie'] as string[] | undefined;
+    const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
     if (cookies) {
       const meRes = await request(app)
         .get('/api/admin/me')
