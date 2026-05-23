@@ -10,7 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "better-sqlite3": "^9.6.0",
+    "better-sqlite3": "^12.10.0",
     "express": "^4.19.2",
     "express-session": "^1.18.0"
   },
