@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
+import SQLiteStoreImport from './sessionStore';
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
@@ -70,13 +71,18 @@ export function createApp(opts: AppOptions = {}): {
   const app = express();
   app.set('trust proxy', 1);
   app.use(express.json());
+  const SQLiteStore = SQLiteStoreImport(session);
   app.use(
     session({
+      store: new SQLiteStore({
+        db: path.basename(dbPath),
+        dir: path.dirname(dbPath),
+      }),
       secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
       cookie: { httpOnly: true, secure: false, maxAge: 24 * 60 * 60 * 1000 },
-    }),
+    })
   );
 
   if (serveStatic) {
@@ -190,11 +196,17 @@ export function createApp(opts: AppOptions = {}): {
     res.send(csv);
   });
 
+  // Expliziter 404-Handler für /api-Routen
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
   // ── SPA fallback ──────────────────────────────────────────────────────────────
   if (serveStatic) {
     const staticPath = path.join(__dirname, '..', 'public');
     if (fs.existsSync(staticPath)) {
-      app.get('*', (_req, res) =>
+      // Nur Nicht-API-Pfade abfangen
+      app.get(/^\/(?!api\/).*/, (_req, res) =>
         res.sendFile(path.join(staticPath, 'index.html')),
       );
     }
