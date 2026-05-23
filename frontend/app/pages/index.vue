@@ -13,10 +13,11 @@
         <input
           id="email-input"
           v-model="emailSearch"
-          type="text"
+          type="email"
+          inputmode="email"
           class="combobox-input"
           placeholder="Type to search…"
-          autocomplete="off"
+          autocomplete="email"
           spellcheck="false"
           @focus="dropdownOpen = true"
           @blur="onBlur"
@@ -24,7 +25,12 @@
           @keydown.escape="dropdownOpen = false"
           @input="dropdownOpen = true"
         />
-        <ul v-if="dropdownOpen && filteredEmails.length" class="combobox-list" role="listbox">
+        <ul
+          ref="comboboxDropdownRef"
+          popover="manual"
+          class="combobox-list"
+          role="listbox"
+        >
           <li
             v-for="email in filteredEmails"
             :key="email"
@@ -83,11 +89,14 @@
     </div>
 
     <!-- Save status toast -->
-    <transition name="toast">
-      <div v-if="saveStatus" class="save-toast" :class="`toast-${saveStatus}`">
-        {{ saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Changes saved!' : 'Error saving — please try again.' }}
-      </div>
-    </transition>
+    <div
+      ref="toastRef"
+      popover="manual"
+      class="save-toast"
+      :class="`toast-${saveStatus}`"
+    >
+      {{ saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Changes saved!' : 'Error saving — please try again.' }}
+    </div>
   </div>
 </template>
 
@@ -116,6 +125,44 @@ const dropdownOpen = ref(false)
 const selectedDay = ref('')
 const selectedIds = ref<Set<string>>(new Set())
 const saveStatus = ref<'' | 'saving' | 'saved' | 'error'>('')
+const toastRef = ref<HTMLElement | null>(null)
+const comboboxDropdownRef = ref<HTMLElement | null>(null)
+
+watch(saveStatus, (newStatus) => {
+  if (!import.meta.client) return
+  if (newStatus) {
+    try {
+      toastRef.value?.showPopover()
+    } catch (e) {
+      console.warn('Popover show failed:', e)
+    }
+  } else {
+    try {
+      toastRef.value?.hidePopover()
+    } catch (e) {
+      console.warn('Popover hide failed:', e)
+    }
+  }
+})
+
+const isDropdownVisible = computed(() => dropdownOpen.value && filteredEmails.value.length > 0)
+
+watch(isDropdownVisible, (visible) => {
+  if (!import.meta.client) return
+  if (visible) {
+    try {
+      comboboxDropdownRef.value?.showPopover()
+    } catch (e) {
+      console.warn('Combobox dropdown show failed:', e)
+    }
+  } else {
+    try {
+      comboboxDropdownRef.value?.hidePopover()
+    } catch (e) {
+      console.warn('Combobox dropdown hide failed:', e)
+    }
+  }
+})
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 let toastTimer: ReturnType<typeof setTimeout> | null = null
@@ -204,6 +251,7 @@ onMounted(loadConfig)
 }
 
 .combobox-input {
+  anchor-name: --email-input;
   width: 100%;
   padding: .6rem .9rem;
   border: 1.5px solid var(--border);
@@ -220,18 +268,34 @@ onMounted(loadConfig)
 }
 
 .combobox-list {
+  /* Override browser popover defaults */
   position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
+  inset: auto;
+  margin: 0;
+  border: none;
   background: #fff;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   box-shadow: 0 8px 24px rgba(0,0,0,.1);
   max-height: 220px;
   overflow-y: auto;
-  z-index: 100;
   list-style: none;
+
+  /* CSS Anchor Positioning relative to input */
+  position-anchor: --email-input;
+  top: anchor(bottom);
+  left: anchor(left);
+  width: anchor(width);
+  margin-top: 4px;
+}
+
+@supports not (position-anchor: auto) {
+  .combobox-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+  }
 }
 
 .combobox-item {
@@ -255,6 +319,7 @@ onMounted(loadConfig)
 
 /* Day tabs */
 .day-tabs {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: .5rem;
@@ -262,14 +327,16 @@ onMounted(loadConfig)
 }
 
 .day-tab {
+  position: relative;
+  z-index: 1;
   padding: .45rem 1rem;
   border-radius: 999px;
   border: 1.5px solid var(--border);
-  background: var(--card);
+  background: transparent;
   color: var(--muted);
   font-size: .9rem;
   font-weight: 500;
-  transition: all .15s;
+  transition: color .15s, border-color .15s;
 }
 
 .day-tab:hover {
@@ -278,9 +345,40 @@ onMounted(loadConfig)
 }
 
 .day-tab.active {
-  background: var(--primary);
-  border-color: var(--primary);
+  anchor-name: --active-day-tab;
   color: #fff;
+  border-color: var(--primary);
+}
+
+/* Sliding active pill background */
+.day-tabs::before {
+  content: '';
+  position: absolute;
+  position-anchor: --active-day-tab;
+
+  inset-block-start: anchor(top);
+  inset-block-end: anchor(bottom);
+  inset-inline-start: anchor(left);
+  inset-inline-end: anchor(right);
+
+  background: var(--primary);
+  border-radius: 999px;
+  z-index: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: inset 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Fallback for browsers that don't support anchor positioning */
+@supports not (position-anchor: auto) {
+  .day-tab.active {
+    background: var(--primary);
+    color: #fff;
+  }
+  .day-tabs::before {
+    display: none;
+  }
 }
 
 /* Seminar grid */
@@ -354,20 +452,41 @@ onMounted(loadConfig)
 /* Toast */
 .save-toast {
   position: fixed;
+  inset: auto;
   bottom: 1.5rem;
   right: 1.5rem;
+  margin: 0;
   padding: .65rem 1.2rem;
   border-radius: var(--radius);
   font-size: .9rem;
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0,0,0,.15);
-  z-index: 999;
+  border: none;
+  background: none;
+
+  /* Modern native popover animations */
+  transition: 
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    overlay 0.3s ease allow-discrete,
+    display 0.3s ease allow-discrete;
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.save-toast:popover-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@starting-style {
+  .save-toast:popover-open {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 .toast-saving { background: #f1f5f9; color: var(--muted); border: 1px solid var(--border); }
 .toast-saved  { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 .toast-error  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-
-.toast-enter-active, .toast-leave-active { transition: opacity .2s, transform .2s; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(8px); }
 </style>

@@ -228,6 +228,7 @@ onMounted(fetchData)
 
 /* View toggle */
 .view-toggle {
+  position: relative;
   display: flex;
   gap: .25rem;
   margin-bottom: 1.5rem;
@@ -238,6 +239,8 @@ onMounted(fetchData)
 }
 
 .view-tab {
+  position: relative;
+  z-index: 1;
   padding: .45rem 1.1rem;
   border-radius: calc(var(--radius) - 2px);
   border: none;
@@ -245,13 +248,44 @@ onMounted(fetchData)
   color: var(--muted);
   font-size: .9rem;
   font-weight: 500;
-  transition: all .15s;
+  transition: color .15s;
 }
 
 .view-tab.active {
-  background: #fff;
+  anchor-name: --active-view-tab;
   color: var(--text);
+}
+
+/* Sliding active toggle background */
+.view-toggle::before {
+  content: '';
+  position: absolute;
+  position-anchor: --active-view-tab;
+
+  inset-block-start: anchor(top);
+  inset-block-end: anchor(bottom);
+  inset-inline-start: anchor(left);
+  inset-inline-end: anchor(right);
+
+  background: #fff;
+  border-radius: calc(var(--radius) - 2px);
   box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  z-index: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: inset 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Fallback for browsers that don't support anchor positioning */
+@supports not (position-anchor: auto) {
+  .view-tab.active {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  }
+  .view-toggle::before {
+    display: none;
+  }
 }
 
 /* Group cards */
