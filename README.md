@@ -1,43 +1,52 @@
 # Seminar Booking App
 
 A self-contained seminar sign-up web application.  
-**Stack:** Node.js / Express (API) + Nuxt 4 SPA (frontend) + SQLite.  
-**Architecture:** Single Docker container — Express compiles and serves the Nuxt build as static files and also handles all REST API routes.
+**Stack:** Netlify Functions (API) + Nuxt 4 SPA (frontend) + Netlify Blobs (Database).
+**Architecture:** Deployed natively on Netlify using Serverless Functions and Netlify Blobs for persistent data storage.
 
 ---
 
-## Quick start
+## Deploying to Netlify
 
-### 1. Prepare your config file
+This project is configured to run fully on Netlify using Netlify Functions for the backend and Netlify Blobs for the database.
 
-```bash
-cp config/config.example.json config/config.json
-# Edit config/config.json with your event, days, participants, and seminars
-```
+### Prerequisites
+1. A Netlify account.
+2. The Netlify CLI installed (`npm install -g netlify-cli`).
 
-### 2. Set environment variables
+### Steps to Deploy
 
-Create a `.env` file (or export variables directly):
+1. **Clone the repository and prepare your config file:**
+   ```bash
+   cp config/config.example.json config/config.json
+   # Edit config/config.json with your event, days, participants, and seminars
+   ```
+   *Note: Because this is a static file bundled into the Netlify Function at build time, any updates to the configuration will require a new deployment.*
 
-```dotenv
-ADMIN_PASSWORD=your-secure-admin-password
-SESSION_SECRET=a-long-random-string-for-signing-cookies
-PORT=3000
-```
+2. **Login to Netlify and Link Project:**
+   ```bash
+   netlify login
+   netlify init
+   ```
 
-### 3. Build and run
+3. **Set environment variables via Netlify CLI (or Netlify UI):**
+   ```bash
+   netlify env:set ADMIN_PASSWORD "your-secure-admin-password"
+   netlify env:set SESSION_SECRET "a-long-random-string-for-signing-cookies"
+   ```
 
-```bash
-docker compose up --build
-```
+4. **Deploy:**
+   ```bash
+   netlify deploy --prod
+   ```
 
-The app is now available at <http://localhost:3000>.
+The app is now fully deployed. Netlify Blobs handles all data persistence for bookings automatically behind the scenes!
 
 ---
 
 ## Accessing the admin panel
 
-Navigate to <http://localhost:3000/admin/login> and enter the password you set in `ADMIN_PASSWORD`.
+Navigate to `https://<your-netlify-site-url>/admin/login` and enter the password you set in `ADMIN_PASSWORD`.
 
 The admin dashboard shows:
 
@@ -48,33 +57,12 @@ The admin dashboard shows:
 
 ---
 
-## Updating participant or seminar data (no rebuild needed)
-
-The config file is read on **every API request**, so you can update it at any time without restarting or rebuilding the container:
-
-```bash
-# Edit config/config.json on the host (it is bind-mounted into the container)
-nano config/config.json
-
-# No restart needed — changes take effect on the next page load
-```
-
-> **Note:** Seminar `id` values are the stable key stored in the database.  
-> If you rename an `id`, existing bookings for that id will become orphaned.  
-> Renaming the `title`, `day`, `time`, or `room` is safe at any time.
-
----
-
 ## Environment variables reference
 
 | Variable | Default | Description |
 |---|---|---|
-| `ADMIN_PASSWORD` | `change-me-before-use` | Password for the admin panel |
-| `SESSION_SECRET` | `change-this-secret-too` | Secret used to sign session cookies |
-| `PORT` | `3000` | HTTP port the server listens on |
-| `DB_PATH` | `/app/data/bookings.db` | Path to the SQLite database file |
-| `CONFIG_PATH` | `/app/config/config.json` | Path to the JSON config file |
-| `NUXT_PUBLIC_API_BASE` | *(empty — same origin)* | Override API base URL for the frontend (only needed when running frontend and backend on separate hosts) |
+| `ADMIN_PASSWORD` | `admin` | Password for the admin panel |
+| `SESSION_SECRET` | `change-me-in-production` | Secret used to sign session cookies |
 
 ---
 
@@ -121,39 +109,19 @@ nano config/config.json
 | `GET` | `/api/bookings/:email` | — | Returns array of seminar IDs booked by this email |
 | `POST` | `/api/bookings/:email` | — | Saves (replaces) seminar IDs for this email. Body: `["s1","s2"]` |
 | `GET` | `/api/admin/me` | — | Returns `{ authenticated: true/false }` |
-| `POST` | `/api/admin/login` | — | Body: `{ "password": "…" }`. Sets session cookie on success. |
-| `POST` | `/api/admin/logout` | session | Clears session |
-| `GET` | `/api/admin/bookings` | session | Returns all bookings as `{ email: [seminarIds] }` |
-| `GET` | `/api/admin/export.csv` | session | Downloads full bookings CSV |
-
----
-
-## Data persistence
-
-Volumes declared in `docker-compose.yml`:
-
-| Host path | Container path | Purpose |
-|---|---|---|
-| `./data/` | `/app/data/` | SQLite database (`bookings.db`) |
-| `./config/` | `/app/config/` | JSON config file (`config.json`) |
-
-The `data/` directory is created automatically on the host when the container first starts.
+| `POST` | `/api/admin/login` | — | Body: `{ "password": "…" }`. Sets signed HTTP-only cookie on success. |
+| `POST` | `/api/admin/logout` | cookie | Clears cookie |
+| `GET` | `/api/admin/bookings` | cookie | Returns all bookings as `{ email: [seminarIds] }` |
+| `GET` | `/api/admin/export.csv` | cookie | Downloads full bookings CSV |
 
 ---
 
 ## Development
 
-To run the API and frontend separately during development:
+You can run the full environment locally using the Netlify CLI:
 
 ```bash
-# Terminal 1 — API
-cd api
-npm install
-DB_PATH=./bookings.db CONFIG_PATH=../config/config.json ADMIN_PASSWORD=admin SESSION_SECRET=dev node dist/server.js
-
-# Terminal 2 — Nuxt dev server
-cd frontend
-NUXT_PUBLIC_API_BASE=http://localhost:3000 npm run dev
+netlify dev
 ```
 
-The Nuxt dev server will proxy API calls to Express via the `apiBase` runtime config.
+This will automatically build and proxy the Nuxt frontend while simultaneously serving the local Netlify Functions mapped to `/api/*`. Netlify Blobs will be emulated locally as well.

@@ -1,0 +1,20 @@
+[build]
+  command = "cd frontend && npm install && npm run generate"
+  publish = "frontend/dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["config/config.json"]
+
+[dev]
+  command = "cd frontend && npm install && npm run dev"
+  targetPort = 3000
+  port = 8888
+  publish = "frontend/dist"
+
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
